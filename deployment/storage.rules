@@ -1,12 +1,86 @@
 rules_version = '2';
-
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/(jpeg|png|gif|webp)');
+    }
+    
+    function isValidDocumentType() {
+      return request.resource.contentType.matches('(application/pdf|text/plain|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)');
+    }
+    
+    function isValidVideoType() {
+      return request.resource.contentType.matches('video/(mp4|webm|ogg)');
+    }
+    
+    // User profile images - strict size and type limits
+    match /users/{userId}/profile/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+        isValidImageType();
+    }
+    
+    // School assets - admin only
+    match /schools/{schoolId}/assets/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+        getUserRole() == 'admin' &&
+        request.resource.size < 10 * 1024 * 1024 && // 10MB limit
+        (isValidImageType() || isValidDocumentType());
+    }
+    
+    // Message attachments - participants only
+    match /messages/{messageId}/attachments/{fileName} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == firestore.get(/databases/(default)/documents/messages/$(messageId)).data.senderId ||
+         request.auth.uid == firestore.get(/databases/(default)/documents/messages/$(messageId)).data.receiverId);
+      allow write: if isAuthenticated() && 
+        request.auth.uid == firestore.get(/databases/(default)/documents/messages/$(messageId)).data.senderId &&
+        request.resource.size < 25 * 1024 * 1024 && // 25MB limit
+        (isValidImageType() || isValidDocumentType());
+    }
+    
+    // Assignment files - class participants
+    match /assignments/{classId}/{assignmentId}/{fileName} {
+      allow read: if isAuthenticated() && 
+        (getUserRole() in ['teacher', 'admin'] || 
+         firestore.exists(/databases/(default)/documents/students/$(request.auth.uid)));
+      allow write: if isAuthenticated() && 
+        getUserRole() in ['teacher', 'admin'] &&
+        request.resource.size < 50 * 1024 * 1024 && // 50MB limit
+        (isValidImageType() || isValidDocumentType());
+    }
+    
+    // Video call recordings - participants only, teachers can upload
+    match /recordings/{callId}/{fileName} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == firestore.get(/databases/(default)/documents/videoCalls/$(callId)).data.initiatorId ||
+         request.auth.uid in firestore.get(/databases/(default)/documents/videoCalls/$(callId)).data.participantIds);
+      allow write: if isAuthenticated() && 
+        getUserRole() in ['teacher', 'admin'] &&
+        request.resource.size < 500 * 1024 * 1024 && // 500MB limit
+        isValidVideoType();
+    }
+    
+    // Temporary uploads - user's own files only
+    match /temp/{userId}/{fileName} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        request.resource.size < 100 * 1024 * 1024; // 100MB limit
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == userId;
     }
   }
 }
