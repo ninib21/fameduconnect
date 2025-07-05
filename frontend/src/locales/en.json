@@ -1,0 +1,59 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success!",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember me",
+    "loginButton": "Sign In",
+    "registerButton": "Create Account",
+    "loginSuccess": "Welcome back!",
+    "loginError": "Invalid email or password",
+    "registerSuccess": "Account created successfully!",
+    "selectRole": "Select your role",
+    "parent": "Parent",
+    "teacher": "Teacher",
+    "admin": "Administrator",
+    "welcomeTitle": "Welcome to FamEduConnect",
+    "welcomeSubtitle": "Connecting families and educators for better learning outcomes"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "grades": "Grades",
+    "attendance": "Attendance",
+    "calendar": "Calendar",
+    "profile": "Profile",
+    "settings": "Settings",
+    "students": "Students",
+    "classes": "Classes",
+    "reports": "Reports",
+    "videoCalls": "Video Calls"
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {{name}}!",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "upcomingEvents": "Upcoming Events",
+    "quickActions": "Quick Actions",
+    "statistics": "Statistics",
+    "notifications": "Notifications"
+  }
+}
